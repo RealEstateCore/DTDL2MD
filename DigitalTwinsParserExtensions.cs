@@ -15,5 +15,33 @@ namespace DTDL2MD
             IEnumerable<DTInterfaceInfo> allInterfaces = ontology.Values.Where(entity => entity is DTInterfaceInfo).Select(entity => (DTInterfaceInfo)entity);
             return allInterfaces.Where(childInterface => childInterface.Extends.Contains(iface));
         }
+
+        public static IEnumerable<DTRelationshipInfo> InheritedRelationships(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTRelationshipInfo && content.DefinedIn != iface.Id)
+                .Select(content => (DTRelationshipInfo)content);
+        }
+
+        public static IEnumerable<DTRelationshipInfo> DirectRelationships(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTRelationshipInfo && content.DefinedIn == iface.Id)
+                .Select(content => (DTRelationshipInfo)content);
+        }
+
+        public static IEnumerable<DTPropertyInfo> InheritedProperties(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTPropertyInfo && content.DefinedIn != iface.Id)
+                .Select(content => (DTPropertyInfo)content);
+        }
+
+        public static IEnumerable<DTPropertyInfo> DirectProperties(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTPropertyInfo && content.DefinedIn == iface.Id)
+                .Select(content => (DTPropertyInfo)content);
+        }
     }
 }

@@ -59,10 +59,28 @@ namespace DTDL2MD
                     output.Add($"    - {desc}");
                 }
 
+                output.Add("## Relationships");
+                if (iface.DirectRelationships().Count() > 0) { 
+                    output.Add("|Name|Display name|Description|Multiplicity|Target|Properties|");
+                    output.Add("|-|-|-|-|-|-|");
+                }
+                foreach (DTRelationshipInfo relationship in iface.DirectRelationships())
+                {
+                    string name = relationship.Name;
+                    string dname = string.Join("<br />", relationship.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                    string desc = string.Join("<br />", relationship.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                    string min = relationship.MinMultiplicity.HasValue ? relationship.MinMultiplicity.Value.ToString() : "0";
+                    string max = relationship.MaxMultiplicity.HasValue ? relationship.MaxMultiplicity.Value.ToString() : "Infinity";
+                    string multiplicity = $"{min}-{max}";
+                    string target = relationship.Target == null ? "" : relationship.Target.ToString();
+                    string props = string.Join("<br>", relationship.Properties.Select(prop => $"{prop.Name} (schema: TBD)")); // TODO: Property schema translation, implement for property display and borrow
+                    output.Add($"|{name}|{dname}|{desc}|{multiplicity}|{target}|{props}");
+                }
+
+                output.Add("## Properties");
                 output.Add("## Telemetries");
                 output.Add("## Commands");
-                output.Add("## Properties");
-                output.Add("## Relationships");
+                
 
                 string interfaceMarkdownPath = GetPath(iface);
 
