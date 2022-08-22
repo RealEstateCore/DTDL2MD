@@ -55,18 +55,55 @@ namespace DTDL2MD
                 output.Add("## Properties");
                 output.Add("## Relationships");
 
-                string path = _outputPath + GetPath(iface);
+                string interfaceMarkdownPath = GetPath(iface);
 
-                File.WriteAllLines(path, output);
+                File.WriteAllLines(interfaceMarkdownPath, output);
             }
 
         }
 
         private static string GetPath(DTInterfaceInfo iface)
         {
-            // TODO Implement me
             string ifaceName = GetApiName(iface);
-            return "\\" + ifaceName + ".md";
+            List<DTInterfaceInfo> parentDirectories = GetLongestParentPath(iface);
+            string modelPath = string.Join("/", parentDirectories.Select(parent => GetApiName(parent)));
+            string modelOutputPath = $"{_outputPath}/{modelPath}/";
+
+            if (DTEntities.ChildrenOf(iface).Any()) { modelOutputPath += $"{ifaceName}/"; }
+            Directory.CreateDirectory(modelOutputPath);
+            string outputFileName = modelOutputPath + ifaceName + ".md";
+
+            return outputFileName;
+        }
+
+        private static List<DTInterfaceInfo> GetLongestParentPath(DTInterfaceInfo iface)
+        {
+            // If we have no superclass, then we have reached the top level; return
+            if (iface.Extends.Count < 1)
+            {
+                return new List<DTInterfaceInfo>();
+            }
+            else
+            {
+                // Assume the first parent has the longest path; if not, it will be replaced in subsequent foreach
+                DTInterfaceInfo longestParent = iface.Extends[0];
+                List<DTInterfaceInfo> longestParentPath = GetLongestParentPath(longestParent);
+
+                // Iterate through the other parents to see if any is longer
+                foreach (DTInterfaceInfo possibleSuperClass in iface.Extends.Skip(1))
+                {
+                    List<DTInterfaceInfo> possibleSuperClassParents = GetLongestParentPath(possibleSuperClass);
+                    if (possibleSuperClassParents.Count > longestParentPath.Count)
+                    {
+                        longestParent = possibleSuperClass;
+                        longestParentPath = possibleSuperClassParents;
+                    }
+                }
+
+                // At this point longestParentPath + longestParent should together contain the longest path to the root; return them
+                longestParentPath.Add(longestParent);
+                return longestParentPath;
+            }
         }
 
         private static string GetApiName(DTEntityInfo entityInfo)
