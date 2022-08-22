@@ -44,12 +44,21 @@ namespace DTDL2MD
 
                 output.Add($"# {ifaceName}");
                 output.Add($"**DTMI:** {iface.Id}");
+
+                output.Add("## Display name");
+                foreach ((string lang, string dname) in iface.DisplayName)
+                {
+                    output.Add($"- {lang}");
+                    output.Add($"    - {dname}");
+                }
+
                 output.Add("## Description");
                 foreach ((string lang, string desc) in iface.Description)
                 {
                     output.Add($"- {lang}");
                     output.Add($"    - {desc}");
                 }
+
                 output.Add("## Telemetries");
                 output.Add("## Commands");
                 output.Add("## Properties");
