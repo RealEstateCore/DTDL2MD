@@ -75,6 +75,15 @@ namespace DTDL2MD
                     string props = string.Join("<br>", relationship.Properties.Select(prop => $"{prop.Name} (schema: TBD)")); // TODO: Property schema translation, implement for property display and borrow
                     output.Add($"|{name}|{dname}|{desc}|{multiplicity}|{target}|{props}");
                 }
+                if (iface.InheritedRelationships().Count() > 0)
+                {
+                    output.Add("### Inherited Relationships");
+                    foreach (Dtmi parent in iface.InheritedRelationships().Select(ir => ir.DefinedIn).Distinct())
+                    {
+                        string relationships = string.Join(", ", iface.InheritedRelationships().Where(ir => ir.DefinedIn == parent).Select(ir => ir.Name).OrderBy(irName => irName));
+                        output.Add($"* **{parent}:** {relationships}");
+                    }
+                }
 
                 output.Add("## Properties");
                 output.Add("## Telemetries");
