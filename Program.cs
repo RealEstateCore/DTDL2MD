@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using Microsoft.Azure.DigitalTwins.Parser;
 using Microsoft.Azure.DigitalTwins.Parser.Models;
+using System.Xml.Linq;
 
 namespace DTDL2MD
 {
@@ -48,15 +49,13 @@ namespace DTDL2MD
                 output.Add("## Display name");
                 foreach ((string lang, string dname) in iface.DisplayName)
                 {
-                    output.Add($"- {lang}");
-                    output.Add($"    - {dname}");
+                    output.Add($"- **{lang}:** {dname}");
                 }
 
                 output.Add("## Description");
                 foreach ((string lang, string desc) in iface.Description)
                 {
-                    output.Add($"- {lang}");
-                    output.Add($"    - {desc}");
+                    output.Add($"- **{lang}:** {desc}");
                 }
 
                 output.Add("## Relationships");
