@@ -91,6 +91,28 @@ namespace DTDL2MD
                 }
 
                 output.Add("## Properties");
+                if (iface.DirectProperties().Count() > 0) { 
+                    output.Add("|Name|Display name|Description|Schema|Writeable|");
+                    output.Add("|-|-|-|-|-|");
+                }
+                foreach (DTPropertyInfo property in iface.DirectProperties()) {
+                    string name = property.Name;
+                    string dname = string.Join("<br />", property.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                    string desc = string.Join("<br />", property.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                    bool writable = property.Writable;
+                    string schema = "TBD"; // TODO: Schema translation.
+                    output.Add($"|{name}|{dname}|{desc}|{schema}|{writable}");
+                }
+                if (iface.InheritedProperties().Count() > 0)
+                {
+                    output.Add("### Inherited Properties");
+                    foreach (Dtmi parent in iface.InheritedProperties().Select(ip => ip.DefinedIn).Distinct())
+                    {
+                        string properties = string.Join(", ", iface.InheritedProperties().Where(ip => ip.DefinedIn == parent).Select(ip => ip.Name).OrderBy(ipName => ipName));
+                        output.Add($"* **{parent}:** {properties}");
+                    }
+                }
+
                 output.Add("## Telemetries");
                 output.Add("## Commands");
                 
