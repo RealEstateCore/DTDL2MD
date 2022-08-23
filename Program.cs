@@ -126,9 +126,10 @@ namespace DTDL2MD
                     output.Add("## Commands");
                 }
 
+                output.Add("## Target Of");
                 if (ontology.RelationshipsTargeting(iface.Id).Any())
                 {
-                    output.Add("## Target Of");
+                    output.Add("### Direct");
                     foreach (DTRelationshipInfo relationship in ontology.RelationshipsTargeting(iface.Id))
                     {
                         DTEntityInfo definedIn = ontology[relationship.DefinedIn];
@@ -139,7 +140,7 @@ namespace DTDL2MD
                 IEnumerable<Dtmi> parentDtmis = iface.AllParents().Select(parent => parent.Id);
                 if (ontology.RelationshipsTargeting(parentDtmis).Any())
                 {
-                    output.Add($"## Inherited Target Of");
+                    output.Add($"### Inherited");
                     foreach (DTRelationshipInfo indirectRelationship in ontology.RelationshipsTargeting(parentDtmis))
                     {
                         DTEntityInfo definedIn = ontology[indirectRelationship.DefinedIn];
