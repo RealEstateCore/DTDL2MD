@@ -125,6 +125,16 @@ namespace DTDL2MD
                 if (iface.AllCommands().Any()) {
                     output.Add("## Commands");
                 }
+
+                if (ontology.RelationshipsTargeting(iface).Any())
+                {
+                    output.Add("## Target Of");
+                    foreach (DTRelationshipInfo relationship in ontology.RelationshipsTargeting(iface))
+                    {
+                        DTEntityInfo definedIn = ontology[relationship.DefinedIn];
+                        output.Add($"* {GetApiName(definedIn)}.{relationship.Name}");
+                    }
+                }
                 
                 string outputFilePath = GetPath(iface);
                 if (Path.GetDirectoryName(outputFilePath) is string outputDirectoryPath) {
