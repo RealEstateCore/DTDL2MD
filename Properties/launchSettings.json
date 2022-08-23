@@ -2,7 +2,8 @@
   "profiles": {
     "DTDL2MD": {
       "commandName": "Project",
-      "commandLineArgs": "-i C:\\REC4\\Ontology\\DTDLv3 -o C:\\REC4\\Doc"
+      //"commandLineArgs": "-i C:\\REC4\\Ontology\\DTDLv3 -o C:\\REC4\\Doc"
+      "commandLineArgs": "-i /Users/karl/Scratch/GitHub/RealEstateCore/REC4/Ontology/DTDLv3 -o /Users/karl/Scratch/GitHub/RealEstateCore/REC4/Doc"
     }
   }
 }
