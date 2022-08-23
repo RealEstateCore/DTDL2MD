@@ -65,8 +65,8 @@ namespace DTDL2MD
 
                 output.Add("## Relationships");
                 if (iface.DirectRelationships().Count() > 0) { 
-                    output.Add("|Name|Display name|Description|Multiplicity|Target|Properties|");
-                    output.Add("|-|-|-|-|-|-|");
+                    output.Add("|Name|Display name|Description|Multiplicity|Target|Properties|Writable|");
+                    output.Add("|-|-|-|-|-|-|-|");
                 }
                 foreach (DTRelationshipInfo relationship in iface.DirectRelationships())
                 {
@@ -78,7 +78,8 @@ namespace DTDL2MD
                     string multiplicity = $"{min}-{max}";
                     string target = relationship.Target == null ? "" : relationship.Target.ToString();
                     string props = string.Join("<br>", relationship.Properties.Select(prop => $"{prop.Name} (schema: TBD)")); // TODO: Property schema translation, implement for property display and borrow
-                    output.Add($"|{name}|{dname}|{desc}|{multiplicity}|{target}|{props}");
+                    bool writable = relationship.Writable;
+                    output.Add($"|{name}|{dname}|{desc}|{multiplicity}|{target}|{props}|{writable}|");
                 }
                 if (iface.InheritedRelationships().Count() > 0)
                 {
@@ -92,7 +93,7 @@ namespace DTDL2MD
 
                 output.Add("## Properties");
                 if (iface.DirectProperties().Count() > 0) { 
-                    output.Add("|Name|Display name|Description|Schema|Writeable|");
+                    output.Add("|Name|Display name|Description|Schema|Writable|");
                     output.Add("|-|-|-|-|-|");
                 }
                 foreach (DTPropertyInfo property in iface.DirectProperties()) {
@@ -101,7 +102,7 @@ namespace DTDL2MD
                     string desc = string.Join("<br />", property.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
                     bool writable = property.Writable;
                     string schema = "TBD"; // TODO: Schema translation.
-                    output.Add($"|{name}|{dname}|{desc}|{schema}|{writable}");
+                    output.Add($"|{name}|{dname}|{desc}|{schema}|{writable}|");
                 }
                 if (iface.InheritedProperties().Count() > 0)
                 {
