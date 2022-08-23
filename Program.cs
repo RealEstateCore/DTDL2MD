@@ -120,6 +120,28 @@ namespace DTDL2MD
 
                 if (iface.AllTelemetries().Any()) {
                     output.Add("## Telemetries");
+                    if (iface.DirectTelemetries().Any())
+                    {
+                        output.Add("|Name|Display name|Description|Schema");
+                        output.Add("|-|-|-|-|-|");
+                    }
+                    foreach (DTTelemetryInfo telemetry in iface.DirectTelemetries())
+                    {
+                        string name = telemetry.Name;
+                        string dname = string.Join("<br />", telemetry.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                        string desc = string.Join("<br />", telemetry.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                        string schema = "TBD"; // TODO: Schema translation.
+                        output.Add($"|{name}|{dname}|{desc}|{schema}|");
+                    }
+                    if (iface.InheritedTelemetries().Any())
+                    {
+                        output.Add("### Inherited Properties");
+                        foreach (Dtmi parent in iface.InheritedTelemetries().Select(it => it.DefinedIn).Distinct())
+                        {
+                            string telemetries = string.Join(", ", iface.InheritedTelemetries().Where(it => it.DefinedIn == parent).Select(it => it.Name).OrderBy(itName => itName));
+                            output.Add($"* **{parent}:** {telemetries}");
+                        }
+                    }
                 }
 
                 if (iface.AllCommands().Any()) {
