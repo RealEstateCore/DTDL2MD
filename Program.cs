@@ -123,7 +123,7 @@ namespace DTDL2MD
                     if (iface.DirectTelemetries().Any())
                     {
                         output.Add("|Name|Display name|Description|Schema");
-                        output.Add("|-|-|-|-|-|");
+                        output.Add("|-|-|-|-|");
                     }
                     foreach (DTTelemetryInfo telemetry in iface.DirectTelemetries())
                     {
@@ -135,7 +135,7 @@ namespace DTDL2MD
                     }
                     if (iface.InheritedTelemetries().Any())
                     {
-                        output.Add("### Inherited Properties");
+                        output.Add("### Inherited Telemetries");
                         foreach (Dtmi parent in iface.InheritedTelemetries().Select(it => it.DefinedIn).Distinct())
                         {
                             string telemetries = string.Join(", ", iface.InheritedTelemetries().Where(it => it.DefinedIn == parent).Select(it => it.Name).OrderBy(itName => itName));
@@ -146,6 +146,29 @@ namespace DTDL2MD
 
                 if (iface.AllCommands().Any()) {
                     output.Add("## Commands");
+                    if (iface.DirectCommands().Any())
+                    {
+                        output.Add("|Name|Display name|Description|Request schema|Response Schema|");
+                        output.Add("|-|-|-|-|");
+                    }
+                    foreach (DTCommandInfo command in iface.DirectCommands())
+                    {
+                        string name = command.Name;
+                        string dname = string.Join("<br />", command.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                        string desc = string.Join("<br />", command.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                        string requestSchema = "TBD"; // TODO: Schema translation.
+                        string responseSchema = "TBD"; // TODO: Schema translation.
+                        output.Add($"|{name}|{dname}|{desc}|{requestSchema}|{responseSchema}|");
+                    }
+                    if (iface.InheritedCommands().Any())
+                    {
+                        output.Add("### Inherited Commands");
+                        foreach (Dtmi parent in iface.InheritedCommands().Select(ic => ic.DefinedIn).Distinct())
+                        {
+                            string commands = string.Join(", ", iface.InheritedCommands().Where(ic => ic.DefinedIn == parent).Select(ic => ic.Name).OrderBy(icName => icName));
+                            output.Add($"* **{parent}:** {commands}");
+                        }
+                    }
                 }
 
                 output.Add("## Target Of");

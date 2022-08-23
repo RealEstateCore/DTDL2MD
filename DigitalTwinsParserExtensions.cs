@@ -89,6 +89,19 @@ namespace DTDL2MD
                 .Select(content => (DTTelemetryInfo)content);
         }
 
+        public static IEnumerable<DTCommandInfo> InheritedCommands(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTCommandInfo && content.DefinedIn != iface.Id)
+                .Select(content => (DTCommandInfo)content);
+        }
+        public static IEnumerable<DTCommandInfo> DirectCommands(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTCommandInfo && content.DefinedIn == iface.Id)
+                .Select(content => (DTCommandInfo)content);
+        }
+
         public static IEnumerable<DTCommandInfo> AllCommands(this DTInterfaceInfo iface)
         {
             return iface.Contents.Values
