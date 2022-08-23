@@ -65,7 +65,7 @@ namespace DTDL2MD
 
                 if (iface.AllRelationships().Any()) {
                     output.Add("## Relationships");
-                    if (iface.DirectRelationships().Count() > 0) { 
+                    if (iface.DirectRelationships().Any()) { 
                         output.Add("|Name|Display name|Description|Multiplicity|Target|Properties|Writable|");
                         output.Add("|-|-|-|-|-|-|-|");
                     }
@@ -95,7 +95,7 @@ namespace DTDL2MD
 
                 if (iface.AllProperties().Any()) {
                     output.Add("## Properties");
-                    if (iface.DirectProperties().Count() > 0) { 
+                    if (iface.DirectProperties().Any()) { 
                         output.Add("|Name|Display name|Description|Schema|Writable|");
                         output.Add("|-|-|-|-|-|");
                     }
