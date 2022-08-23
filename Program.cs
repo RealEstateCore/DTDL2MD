@@ -63,7 +63,7 @@ namespace DTDL2MD
                     output.Add($"- **{lang}:** {desc}");
                 }
 
-                if (iface.AllRelationships().Count() > 0) {
+                if (iface.AllRelationships().Any()) {
                     output.Add("## Relationships");
                     if (iface.DirectRelationships().Count() > 0) { 
                         output.Add("|Name|Display name|Description|Multiplicity|Target|Properties|Writable|");
@@ -82,7 +82,7 @@ namespace DTDL2MD
                         bool writable = relationship.Writable;
                         output.Add($"|{name}|{dname}|{desc}|{multiplicity}|{target}|{props}|{writable}|");
                     }
-                    if (iface.InheritedRelationships().Count() > 0)
+                    if (iface.InheritedRelationships().Any())
                     {
                         output.Add("### Inherited Relationships");
                         foreach (Dtmi parent in iface.InheritedRelationships().Select(ir => ir.DefinedIn).Distinct())
@@ -93,7 +93,7 @@ namespace DTDL2MD
                     }
                 }
 
-                if (iface.AllProperties().Count() > 0) {
+                if (iface.AllProperties().Any()) {
                     output.Add("## Properties");
                     if (iface.DirectProperties().Count() > 0) { 
                         output.Add("|Name|Display name|Description|Schema|Writable|");
@@ -107,7 +107,7 @@ namespace DTDL2MD
                         string schema = "TBD"; // TODO: Schema translation.
                         output.Add($"|{name}|{dname}|{desc}|{schema}|{writable}|");
                     }
-                    if (iface.InheritedProperties().Count() > 0)
+                    if (iface.InheritedProperties().Any())
                     {
                         output.Add("### Inherited Properties");
                         foreach (Dtmi parent in iface.InheritedProperties().Select(ip => ip.DefinedIn).Distinct())
@@ -118,11 +118,11 @@ namespace DTDL2MD
                     }
                 }
 
-                if (iface.AllTelemetries().Count() > 0) {
+                if (iface.AllTelemetries().Any()) {
                     output.Add("## Telemetries");
                 }
 
-                if (iface.AllCommands().Count() > 0) {
+                if (iface.AllCommands().Any()) {
                     output.Add("## Commands");
                 }
                 
