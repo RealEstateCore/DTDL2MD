@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using Microsoft.Azure.DigitalTwins.Parser;
 using Microsoft.Azure.DigitalTwins.Parser.Models;
+using System.Net.Http.Headers;
 using System.Xml.Linq;
 
 namespace DTDL2MD
@@ -78,7 +79,7 @@ namespace DTDL2MD
                         string max = relationship.MaxMultiplicity.HasValue ? relationship.MaxMultiplicity.Value.ToString() : "Infinity";
                         string multiplicity = $"{min}-{max}";
                         string target = relationship.Target == null ? "" : relationship.Target.ToString();
-                        string props = string.Join("<br>", relationship.Properties.Select(prop => $"{prop.Name} (schema: TBD)")); // TODO: Property schema translation, implement for property display and borrow
+                        string props = string.Join("<br>", relationship.Properties.Select(prop => $"{prop.Name} ({GetSchemaString(prop.Schema)})"));
                         bool writable = relationship.Writable;
                         output.Add($"|{name}|{dname}|{desc}|{multiplicity}|{target}|{props}|{writable}|");
                     }
@@ -104,7 +105,7 @@ namespace DTDL2MD
                         string dname = string.Join("<br />", property.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
                         string desc = string.Join("<br />", property.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
                         bool writable = property.Writable;
-                        string schema = "TBD"; // TODO: Schema translation.
+                        string schema = GetSchemaString(property.Schema);
                         output.Add($"|{name}|{dname}|{desc}|{schema}|{writable}|");
                     }
                     if (iface.InheritedProperties().Any())
@@ -130,7 +131,7 @@ namespace DTDL2MD
                         string name = telemetry.Name;
                         string dname = string.Join("<br />", telemetry.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
                         string desc = string.Join("<br />", telemetry.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
-                        string schema = "TBD"; // TODO: Schema translation.
+                        string schema = GetSchemaString(telemetry.Schema);
                         output.Add($"|{name}|{dname}|{desc}|{schema}|");
                     }
                     if (iface.InheritedTelemetries().Any())
@@ -156,8 +157,8 @@ namespace DTDL2MD
                         string name = command.Name;
                         string dname = string.Join("<br />", command.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
                         string desc = string.Join("<br />", command.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
-                        string requestSchema = "TBD"; // TODO: Schema translation.
-                        string responseSchema = "TBD"; // TODO: Schema translation.
+                        string requestSchema = command.Request != null ? GetSchemaString(command.Request.Schema) : "";
+                        string responseSchema = command.Response != null ? GetSchemaString(command.Response.Schema) : "";
                         output.Add($"|{name}|{dname}|{desc}|{requestSchema}|{responseSchema}|");
                     }
                     if (iface.InheritedCommands().Any())
@@ -202,6 +203,48 @@ namespace DTDL2MD
                 Console.WriteLine($"Wrote {outputFilePath}");
             }
 
+        }
+
+        private static string GetSchemaString(DTSchemaInfo schema)
+        {
+            switch (schema)
+            {
+                case DTBooleanInfo:
+                    return "boolean";
+                case DTDateInfo:
+                    return "date";
+                case DTDateTimeInfo:
+                    return "dateTime";
+                case DTDoubleInfo:
+                    return "double";
+                case DTDurationInfo:
+                    return "duration";
+                case DTFloatInfo:
+                    return "float";
+                case DTIntegerInfo:
+                    return "integer";
+                case DTLongInfo:
+                    return "long";
+                case DTStringInfo:
+                    return "string";
+                case DTTimeInfo:
+                    return "time";
+                case DTMapInfo map:
+                    string mapKeySchema = GetSchemaString(map.MapKey.Schema);
+                    string mapValueSchema = GetSchemaString(map.MapValue.Schema);
+                    return $"map ({mapKeySchema}->{mapValueSchema})";
+                case DTArrayInfo array:
+                    string arrayElementSchema = GetSchemaString(array.ElementSchema);
+                    return $"array ({arrayElementSchema})";
+                case DTEnumInfo enumSchema:
+                    string enumOptions = string.Join(", ",enumSchema.EnumValues.Select(enumValue => enumValue.Name));
+                    return $"enum ({enumOptions})";
+                /*case DTObjectInfo objectSchema:
+                    string objectFields = string.Join(", ",objectSchema.Fields.Select(field => $"{field.Name} ({GetSchemaString(field.Schema)})"));
+                    return $"object ({objectFields})";*/
+                default:
+                    return schema.ToString() ?? schema.Id.ToString();
+            }
         }
 
         private static string GetPath(DTInterfaceInfo iface)
