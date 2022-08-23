@@ -16,10 +16,16 @@ namespace DTDL2MD
             return allInterfaces.Where(childInterface => childInterface.Extends.Contains(iface));
         }
 
-        public static IEnumerable<DTRelationshipInfo> RelationshipsTargeting(this IReadOnlyDictionary<Dtmi, DTEntityInfo> ontology, DTInterfaceInfo iface)
+        public static IEnumerable<DTRelationshipInfo> RelationshipsTargeting(this IReadOnlyDictionary<Dtmi, DTEntityInfo> ontology, Dtmi target)
         {
             IEnumerable<DTRelationshipInfo> allRelationships = ontology.Values.Where(entity => entity is DTRelationshipInfo).Select(entity => (DTRelationshipInfo)entity);
-            return allRelationships.Where(relationship => relationship.Target == iface.Id);
+            return allRelationships.Where(relationship => relationship.Target == target);
+        }
+
+        public static IEnumerable<DTRelationshipInfo> RelationshipsTargeting(this IReadOnlyDictionary<Dtmi, DTEntityInfo> ontology, IEnumerable<Dtmi> targets)
+        {
+            IEnumerable<DTRelationshipInfo> allRelationships = ontology.Values.Where(entity => entity is DTRelationshipInfo).Select(entity => (DTRelationshipInfo)entity);
+            return allRelationships.Where(relationship => targets.Contains(relationship.Target));
         }
 
         public static IEnumerable<DTRelationshipInfo> InheritedRelationships(this DTInterfaceInfo iface)
@@ -75,6 +81,18 @@ namespace DTDL2MD
             return iface.Contents.Values
                 .Where(content => content is DTCommandInfo)
                 .Select(content => (DTCommandInfo)content);
+        }
+
+        public static IEnumerable<DTInterfaceInfo> AllParents(this DTInterfaceInfo iface)
+        {
+            foreach (DTInterfaceInfo parent in iface.Extends)
+            {
+                yield return parent;
+                foreach (DTInterfaceInfo ancestor in parent.AllParents())
+                {
+                    yield return ancestor;
+                }
+            }
         }
     }
 }

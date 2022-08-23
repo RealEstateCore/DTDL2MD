@@ -126,16 +126,27 @@ namespace DTDL2MD
                     output.Add("## Commands");
                 }
 
-                if (ontology.RelationshipsTargeting(iface).Any())
+                if (ontology.RelationshipsTargeting(iface.Id).Any())
                 {
                     output.Add("## Target Of");
-                    foreach (DTRelationshipInfo relationship in ontology.RelationshipsTargeting(iface))
+                    foreach (DTRelationshipInfo relationship in ontology.RelationshipsTargeting(iface.Id))
                     {
                         DTEntityInfo definedIn = ontology[relationship.DefinedIn];
                         output.Add($"* {GetApiName(definedIn)}.{relationship.Name}");
                     }
                 }
-                
+
+                IEnumerable<Dtmi> parentDtmis = iface.AllParents().Select(parent => parent.Id);
+                if (ontology.RelationshipsTargeting(parentDtmis).Any())
+                {
+                    output.Add($"## Inherited Target Of");
+                    foreach (DTRelationshipInfo indirectRelationship in ontology.RelationshipsTargeting(parentDtmis))
+                    {
+                        DTEntityInfo definedIn = ontology[indirectRelationship.DefinedIn];
+                        output.Add($"* {GetApiName(definedIn)}.{indirectRelationship.Name}");
+                    }
+                }
+
                 string outputFilePath = GetPath(iface);
                 if (Path.GetDirectoryName(outputFilePath) is string outputDirectoryPath) {
                     Directory.CreateDirectory(outputDirectoryPath);
