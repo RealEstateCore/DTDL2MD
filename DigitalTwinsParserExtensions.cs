@@ -22,11 +22,17 @@ namespace DTDL2MD
                 .Where(content => content is DTRelationshipInfo && content.DefinedIn != iface.Id)
                 .Select(content => (DTRelationshipInfo)content);
         }
-
         public static IEnumerable<DTRelationshipInfo> DirectRelationships(this DTInterfaceInfo iface)
         {
             return iface.Contents.Values
                 .Where(content => content is DTRelationshipInfo && content.DefinedIn == iface.Id)
+                .Select(content => (DTRelationshipInfo)content);
+        }
+
+        public static IEnumerable<DTRelationshipInfo> AllRelationships(this DTInterfaceInfo iface)  
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTRelationshipInfo)
                 .Select(content => (DTRelationshipInfo)content);
         }
 
@@ -42,6 +48,27 @@ namespace DTDL2MD
             return iface.Contents.Values
                 .Where(content => content is DTPropertyInfo && content.DefinedIn == iface.Id)
                 .Select(content => (DTPropertyInfo)content);
+        }
+
+        public static IEnumerable<DTPropertyInfo> AllProperties(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTPropertyInfo)
+                .Select(content => (DTPropertyInfo)content);
+        }
+
+        public static IEnumerable<DTTelemetryInfo> AllTelemetries(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTTelemetryInfo)
+                .Select(content => (DTTelemetryInfo)content);
+        }
+
+        public static IEnumerable<DTCommandInfo> AllCommands(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTCommandInfo)
+                .Select(content => (DTCommandInfo)content);
         }
     }
 }

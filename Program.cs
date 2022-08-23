@@ -63,59 +63,68 @@ namespace DTDL2MD
                     output.Add($"- **{lang}:** {desc}");
                 }
 
-                output.Add("## Relationships");
-                if (iface.DirectRelationships().Count() > 0) { 
-                    output.Add("|Name|Display name|Description|Multiplicity|Target|Properties|Writable|");
-                    output.Add("|-|-|-|-|-|-|-|");
-                }
-                foreach (DTRelationshipInfo relationship in iface.DirectRelationships())
-                {
-                    string name = relationship.Name;
-                    string dname = string.Join("<br />", relationship.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
-                    string desc = string.Join("<br />", relationship.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
-                    string min = relationship.MinMultiplicity.HasValue ? relationship.MinMultiplicity.Value.ToString() : "0";
-                    string max = relationship.MaxMultiplicity.HasValue ? relationship.MaxMultiplicity.Value.ToString() : "Infinity";
-                    string multiplicity = $"{min}-{max}";
-                    string target = relationship.Target == null ? "" : relationship.Target.ToString();
-                    string props = string.Join("<br>", relationship.Properties.Select(prop => $"{prop.Name} (schema: TBD)")); // TODO: Property schema translation, implement for property display and borrow
-                    bool writable = relationship.Writable;
-                    output.Add($"|{name}|{dname}|{desc}|{multiplicity}|{target}|{props}|{writable}|");
-                }
-                if (iface.InheritedRelationships().Count() > 0)
-                {
-                    output.Add("### Inherited Relationships");
-                    foreach (Dtmi parent in iface.InheritedRelationships().Select(ir => ir.DefinedIn).Distinct())
+                if (iface.AllRelationships().Count() > 0) {
+                    output.Add("## Relationships");
+                    if (iface.DirectRelationships().Count() > 0) { 
+                        output.Add("|Name|Display name|Description|Multiplicity|Target|Properties|Writable|");
+                        output.Add("|-|-|-|-|-|-|-|");
+                    }
+                    foreach (DTRelationshipInfo relationship in iface.DirectRelationships())
                     {
-                        string relationships = string.Join(", ", iface.InheritedRelationships().Where(ir => ir.DefinedIn == parent).Select(ir => ir.Name).OrderBy(irName => irName));
-                        output.Add($"* **{parent}:** {relationships}");
+                        string name = relationship.Name;
+                        string dname = string.Join("<br />", relationship.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                        string desc = string.Join("<br />", relationship.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                        string min = relationship.MinMultiplicity.HasValue ? relationship.MinMultiplicity.Value.ToString() : "0";
+                        string max = relationship.MaxMultiplicity.HasValue ? relationship.MaxMultiplicity.Value.ToString() : "Infinity";
+                        string multiplicity = $"{min}-{max}";
+                        string target = relationship.Target == null ? "" : relationship.Target.ToString();
+                        string props = string.Join("<br>", relationship.Properties.Select(prop => $"{prop.Name} (schema: TBD)")); // TODO: Property schema translation, implement for property display and borrow
+                        bool writable = relationship.Writable;
+                        output.Add($"|{name}|{dname}|{desc}|{multiplicity}|{target}|{props}|{writable}|");
+                    }
+                    if (iface.InheritedRelationships().Count() > 0)
+                    {
+                        output.Add("### Inherited Relationships");
+                        foreach (Dtmi parent in iface.InheritedRelationships().Select(ir => ir.DefinedIn).Distinct())
+                        {
+                            string relationships = string.Join(", ", iface.InheritedRelationships().Where(ir => ir.DefinedIn == parent).Select(ir => ir.Name).OrderBy(irName => irName));
+                            output.Add($"* **{parent}:** {relationships}");
+                        }
                     }
                 }
 
-                output.Add("## Properties");
-                if (iface.DirectProperties().Count() > 0) { 
-                    output.Add("|Name|Display name|Description|Schema|Writable|");
-                    output.Add("|-|-|-|-|-|");
-                }
-                foreach (DTPropertyInfo property in iface.DirectProperties()) {
-                    string name = property.Name;
-                    string dname = string.Join("<br />", property.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
-                    string desc = string.Join("<br />", property.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
-                    bool writable = property.Writable;
-                    string schema = "TBD"; // TODO: Schema translation.
-                    output.Add($"|{name}|{dname}|{desc}|{schema}|{writable}|");
-                }
-                if (iface.InheritedProperties().Count() > 0)
-                {
-                    output.Add("### Inherited Properties");
-                    foreach (Dtmi parent in iface.InheritedProperties().Select(ip => ip.DefinedIn).Distinct())
+                if (iface.AllProperties().Count() > 0) {
+                    output.Add("## Properties");
+                    if (iface.DirectProperties().Count() > 0) { 
+                        output.Add("|Name|Display name|Description|Schema|Writable|");
+                        output.Add("|-|-|-|-|-|");
+                    }
+                    foreach (DTPropertyInfo property in iface.DirectProperties()) {
+                        string name = property.Name;
+                        string dname = string.Join("<br />", property.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                        string desc = string.Join("<br />", property.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                        bool writable = property.Writable;
+                        string schema = "TBD"; // TODO: Schema translation.
+                        output.Add($"|{name}|{dname}|{desc}|{schema}|{writable}|");
+                    }
+                    if (iface.InheritedProperties().Count() > 0)
                     {
-                        string properties = string.Join(", ", iface.InheritedProperties().Where(ip => ip.DefinedIn == parent).Select(ip => ip.Name).OrderBy(ipName => ipName));
-                        output.Add($"* **{parent}:** {properties}");
+                        output.Add("### Inherited Properties");
+                        foreach (Dtmi parent in iface.InheritedProperties().Select(ip => ip.DefinedIn).Distinct())
+                        {
+                            string properties = string.Join(", ", iface.InheritedProperties().Where(ip => ip.DefinedIn == parent).Select(ip => ip.Name).OrderBy(ipName => ipName));
+                            output.Add($"* **{parent}:** {properties}");
+                        }
                     }
                 }
 
-                output.Add("## Telemetries");
-                output.Add("## Commands");
+                if (iface.AllTelemetries().Count() > 0) {
+                    output.Add("## Telemetries");
+                }
+
+                if (iface.AllCommands().Count() > 0) {
+                    output.Add("## Commands");
+                }
                 
                 string outputFilePath = GetPath(iface);
                 if (Path.GetDirectoryName(outputFilePath) is string outputDirectoryPath) {
