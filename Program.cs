@@ -16,28 +16,33 @@ namespace DTDL2MD
         }
 
         // Configuration fields
-        private static string _inputPath;
-        private static string _outputPath;
+        private static string inputRoot;
+        private static string outputRoot;
 
         // Data fields
-        private static IReadOnlyDictionary<Dtmi, DTEntityInfo> DTEntities;
+        private static IReadOnlyDictionary<Dtmi, DTEntityInfo> ontology;
 
         static void Main(string[] args)
         {
             Parser.Default.ParseArguments<Options>(args)
                    .WithParsed(o =>
                    {
-                       _inputPath = o.InputPath;
-                       _outputPath = o.OutputPath;
+                       inputRoot = o.InputPath;
+                       outputRoot = o.OutputPath;
                    })
                    .WithNotParsed((errs) =>
                    {
                        Environment.Exit(1);
                    });
 
+            if (!(Directory.Exists(inputRoot) && Directory.Exists(outputRoot))) 
+            {
+                Console.Error.WriteLine("Input and/or output paths do not exist.");
+                Environment.Exit(1); 
+            }
             LoadInput();
 
-            foreach (DTInterfaceInfo iface in DTEntities.Values.Where(entity => entity is DTInterfaceInfo))
+            foreach (DTInterfaceInfo iface in ontology.Values.Where(entity => entity is DTInterfaceInfo))
             {
                 List<string> output = new List<string>();
                 
@@ -89,26 +94,30 @@ namespace DTDL2MD
                 output.Add("## Telemetries");
                 output.Add("## Commands");
                 
+                string outputFilePath = GetPath(iface);
+                if (Path.GetDirectoryName(outputFilePath) is string outputDirectoryPath) {
+                    Directory.CreateDirectory(outputDirectoryPath);
+                }
 
-                string interfaceMarkdownPath = GetPath(iface);
-
-                File.WriteAllLines(interfaceMarkdownPath, output);
+                File.WriteAllLines(outputFilePath, output);
+                Console.WriteLine($"Wrote {outputFilePath}");
             }
 
         }
 
         private static string GetPath(DTInterfaceInfo iface)
         {
+            // Construct parent directory structure based on longest parent path to root
             string ifaceName = GetApiName(iface);
             List<DTInterfaceInfo> parentDirectories = GetLongestParentPath(iface);
-            string modelPath = string.Join("/", parentDirectories.Select(parent => GetApiName(parent)));
-            string modelOutputPath = $"{_outputPath}/{modelPath}/";
+            string outputDirectory = outputRoot + "/" + string.Join("/", parentDirectories.Select(parent => GetApiName(parent)));
+            
+            // If the interface has children, place it with them
+            if (ontology.ChildrenOf(iface).Any()) { outputDirectory += $"/{ifaceName}"; }
+            
+            string outputFilePath = $"{outputDirectory}/{ifaceName}.md";
 
-            if (DTEntities.ChildrenOf(iface).Any()) { modelOutputPath += $"{ifaceName}/"; }
-            Directory.CreateDirectory(modelOutputPath);
-            string outputFileName = modelOutputPath + ifaceName + ".md";
-
-            return outputFileName;
+            return outputFilePath;
         }
 
         private static List<DTInterfaceInfo> GetLongestParentPath(DTInterfaceInfo iface)
@@ -158,14 +167,14 @@ namespace DTDL2MD
         {
             // Get selected file or, if directory selected, all JSON files in selected dir
             IEnumerable<FileInfo> sourceFiles;
-            if (File.GetAttributes(_inputPath) == FileAttributes.Directory)
+            if (File.GetAttributes(inputRoot) == FileAttributes.Directory)
             {
-                DirectoryInfo directoryInfo = new DirectoryInfo(_inputPath);
+                DirectoryInfo directoryInfo = new DirectoryInfo(inputRoot);
                 sourceFiles = directoryInfo.EnumerateFiles("*.json", SearchOption.AllDirectories);
             }
             else
             {
-                FileInfo singleSourceFile = new FileInfo(_inputPath);
+                FileInfo singleSourceFile = new FileInfo(inputRoot);
                 sourceFiles = new[] { singleSourceFile };
             }
 
@@ -180,7 +189,7 @@ namespace DTDL2MD
 
             try
             {
-                DTEntities = modelParser.Parse(modelJson);
+                ontology = modelParser.Parse(modelJson);
             }
             catch (ParsingException parserEx)
             {
