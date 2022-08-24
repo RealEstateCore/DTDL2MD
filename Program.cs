@@ -1,9 +1,6 @@
 ﻿using CommandLine;
 using Microsoft.Azure.DigitalTwins.Parser;
 using Microsoft.Azure.DigitalTwins.Parser.Models;
-using System.Net.Http.Headers;
-using System.Xml.Linq;
-using System.Xml.Schema;
 
 namespace DTDL2MD
 {
@@ -53,6 +50,10 @@ namespace DTDL2MD
 
                 // Ancestor breadcrumbs
                 List<string> ancestorLinks = new List<string>();
+                Uri ifacePath = new Uri($"file:///{outputRoot}{GetPath(iface)}");
+                Uri indexPathUri = new Uri($"file:///{outputRoot}Index.md");
+                Uri linkToIndex = ifacePath.MakeRelativeUri(indexPathUri);
+                ancestorLinks.Add($"[Index]({linkToIndex.OriginalString})");
                 foreach (DTInterfaceInfo ancestor in GetLongestParentPath(iface))
                 {
                     ancestorLinks.Add($"[{GetApiName(ancestor)}]({GetRelativePath(iface, ancestor)})");
@@ -241,11 +242,12 @@ namespace DTDL2MD
             // Write index page
             Console.WriteLine($"Generating index...");
             List<string> indexPage = new List<string>();
+            indexPage.Add("# Interface Index");
             foreach (DTInterfaceInfo iface in ontology.Values.Where(entity => entity is DTInterfaceInfo iface && !iface.Extends.Any()).OrderBy(iface => GetApiName(iface)))
             {
                 RecursivelyWriteTree(iface, 0, indexPage);
             }
-            string indexPath = outputRoot + "/index.md";
+            string indexPath = outputRoot + "index.md";
             File.WriteAllLines(indexPath, indexPage);
         }
 
@@ -336,7 +338,6 @@ namespace DTDL2MD
             Uri sourcePath = new Uri($"file:///{outputRoot}{GetPath(sourceIface)}");
             Uri targetPath = new Uri($"file:///{outputRoot}{GetPath(targetIface)}");
             Uri relativeLink = sourcePath.MakeRelativeUri(targetPath);
-            string originalstring = relativeLink.OriginalString;
             return relativeLink.OriginalString;
         }
 
