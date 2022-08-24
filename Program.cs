@@ -29,8 +29,9 @@ namespace DTDL2MD
             Parser.Default.ParseArguments<Options>(args)
                    .WithParsed(o =>
                    {
-                       inputRoot = o.InputPath;
-                       outputRoot = o.OutputPath;
+                       // Ensure exactly ONE trailing slash on paths, regardless of whether user entered one or not.
+                       inputRoot = o.InputPath.TrimEnd('/') + "/";
+                       outputRoot = o.OutputPath.TrimEnd('/') + "/";
                    })
                    .WithNotParsed((errs) =>
                    {
@@ -229,12 +230,36 @@ namespace DTDL2MD
                 }
 
                 // Define and create output directory; write file and log
-                string outputFilePath = GetPath(iface);
+                string outputFilePath = outputRoot + GetPath(iface);
                 if (Path.GetDirectoryName(outputFilePath) is string outputDirectoryPath) {
                     Directory.CreateDirectory(outputDirectoryPath);
                 }
                 File.WriteAllLines(outputFilePath, output);
                 Console.WriteLine($"Wrote {outputFilePath}");
+            }
+
+            // Write index page
+            Console.WriteLine($"Generating index...");
+            List<string> indexPage = new List<string>();
+            foreach (DTInterfaceInfo iface in ontology.Values.Where(entity => entity is DTInterfaceInfo iface && !iface.Extends.Any()).OrderBy(iface => GetApiName(iface)))
+            {
+                RecursivelyWriteTree(iface, 0, indexPage);
+            }
+            string indexPath = outputRoot + "/index.md";
+            File.WriteAllLines(indexPath, indexPage);
+        }
+
+        private static void RecursivelyWriteTree(DTInterfaceInfo iface, int nestingLevel, List<string> indexPage)
+        {
+            int paddingCount = nestingLevel * 4;
+            string padding = "".PadLeft(paddingCount, ' ');
+            string ifaceName = GetApiName(iface);
+            string link = GetPath(iface);
+            string line = $"{padding}* [{ifaceName}]({link})";
+            indexPage.Add(line);
+            foreach (DTInterfaceInfo childIface in ontology.ChildrenOf(iface).OrderBy(child => GetApiName(child)))
+            {
+                RecursivelyWriteTree(childIface, nestingLevel + 1, indexPage);
             }
         }
 
@@ -285,15 +310,19 @@ namespace DTDL2MD
             // Construct parent directory structure based on longest parent path to root
             string ifaceName = GetApiName(iface);
             List<DTInterfaceInfo> parentDirectories = GetLongestParentPath(iface);
-            string outputDirectory = outputRoot + "/" + string.Join("/", parentDirectories.Select(parent => GetApiName(parent)));
+            string outputDirectory = string.Join("/", parentDirectories.Select(parent => GetApiName(parent)));
+            // If non-root output directory, add trailing slash
+            if (outputDirectory.Length > 0 )
+            {
+                outputDirectory += "/";
+            }
             
             // If the interface has children, place it with them
-            if (ontology.ChildrenOf(iface).Any()) { outputDirectory += $"/{ifaceName}"; }
+            if (ontology.ChildrenOf(iface).Any()) {
+                outputDirectory += $"{ifaceName}/";
+            }
             
-            string outputFilePath = $"{outputDirectory}/{ifaceName}.md";
-
-            // Replace double slashes; will occur on top-level interfaces w/ children due to parentDirectories above being empty list
-            outputFilePath = outputFilePath.Replace("//", "/");
+            string outputFilePath = outputDirectory + $"{ifaceName}.md";
 
             return outputFilePath;
         }
@@ -304,8 +333,8 @@ namespace DTDL2MD
             {
                 return "#";
             }
-            Uri sourcePath = new Uri($"file:///{GetPath(sourceIface)}");
-            Uri targetPath = new Uri($"file:///{GetPath(targetIface)}");
+            Uri sourcePath = new Uri($"file:///{outputRoot}{GetPath(sourceIface)}");
+            Uri targetPath = new Uri($"file:///{outputRoot}{GetPath(targetIface)}");
             Uri relativeLink = sourcePath.MakeRelativeUri(targetPath);
             string originalstring = relativeLink.OriginalString;
             return relativeLink.OriginalString;
