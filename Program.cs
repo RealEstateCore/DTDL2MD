@@ -247,7 +247,7 @@ namespace DTDL2MD
             {
                 RecursivelyWriteTree(iface, 0, indexPage);
             }
-            string indexPath = outputRoot + "index.md";
+            string indexPath = outputRoot + "Index.md";
             File.WriteAllLines(indexPath, indexPage);
         }
 
