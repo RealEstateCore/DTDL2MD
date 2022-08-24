@@ -3,6 +3,7 @@ using Microsoft.Azure.DigitalTwins.Parser;
 using Microsoft.Azure.DigitalTwins.Parser.Models;
 using System.Net.Http.Headers;
 using System.Xml.Linq;
+using System.Xml.Schema;
 
 namespace DTDL2MD
 {
@@ -46,7 +47,18 @@ namespace DTDL2MD
             foreach (DTInterfaceInfo iface in ontology.Values.Where(entity => entity is DTInterfaceInfo))
             {
                 List<string> output = new List<string>();
-                
+
+                List<string> ancestorLinks = new List<string>();
+                foreach (DTInterfaceInfo ancestor in GetLongestParentPath(iface))
+                {
+                    Uri myPath = new Uri($"file:///{GetPath(iface)}");
+                    Uri ancestorPath = new Uri($"file:///{GetPath(ancestor)}");
+                    Uri relativeLink = myPath.MakeRelativeUri(ancestorPath);
+                    ancestorLinks.Add($"[{GetApiName(ancestor)}]({relativeLink.OriginalString})");
+                }
+                ancestorLinks.Add($"[{GetApiName(iface)}](.)");
+                output.Add(string.Join(" > ", ancestorLinks));
+
                 string ifaceName = GetApiName(iface);
 
                 output.Add($"# {ifaceName}");
@@ -194,7 +206,7 @@ namespace DTDL2MD
                     }
                 }
 
-                string outputFilePath = GetPath(iface);
+                string outputFilePath = outputRoot + GetPath(iface);
                 if (Path.GetDirectoryName(outputFilePath) is string outputDirectoryPath) {
                     Directory.CreateDirectory(outputDirectoryPath);
                 }
@@ -252,12 +264,12 @@ namespace DTDL2MD
             // Construct parent directory structure based on longest parent path to root
             string ifaceName = GetApiName(iface);
             List<DTInterfaceInfo> parentDirectories = GetLongestParentPath(iface);
-            string outputDirectory = outputRoot + "/" + string.Join("/", parentDirectories.Select(parent => GetApiName(parent)));
+            string outputDirectory = string.Join("/", parentDirectories.Select(parent => GetApiName(parent)));
             
             // If the interface has children, place it with them
             if (ontology.ChildrenOf(iface).Any()) { outputDirectory += $"/{ifaceName}"; }
             
-            string outputFilePath = $"{outputDirectory}/{ifaceName}.md";
+            string outputFilePath = $"/{outputDirectory}/{ifaceName}.md";
 
             return outputFilePath;
         }
