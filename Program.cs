@@ -48,47 +48,43 @@ namespace DTDL2MD
             {
                 List<string> output = new List<string>();
 
+                string ifaceName = GetApiName(iface);
+
+                // Ancestor breadcrumbs
                 List<string> ancestorLinks = new List<string>();
                 foreach (DTInterfaceInfo ancestor in GetLongestParentPath(iface))
                 {
-                    Uri myPath = new Uri($"file:///{GetPath(iface)}");
-                    Uri ancestorPath = new Uri($"file:///{GetPath(ancestor)}");
-                    Uri relativeLink = myPath.MakeRelativeUri(ancestorPath);
-                    ancestorLinks.Add($"[{GetApiName(ancestor)}]({relativeLink.OriginalString})");
+                    ancestorLinks.Add($"[{GetApiName(ancestor)}]({GetRelativePath(iface, ancestor)})");
                 }
-                ancestorLinks.Add($"[{GetApiName(iface)}](#)");
+                ancestorLinks.Add($"[{ifaceName}](#)");
                 output.Add(string.Join(" > ", ancestorLinks));
 
-                string ifaceName = GetApiName(iface);
+                // Page title, description, displayname, and DTMI
                 output.Add($"# {ifaceName}\n");
 
                 if (iface.Description.Count > 0)
                 {
                     output.Add($"{iface.Description.First().Value}\n\n");
                 }
-
                 if (iface.DisplayName.Count > 0)
                 {
                     output.Add($"**Display name:** {iface.DisplayName.First().Value}<br />");
                 }
-
                 output.Add($"**DTMI:** {iface.Id}");
                 output.Add("\n---");
 
+                // Child interfaces section
                 if (ontology.ChildrenOf(iface).Any())
                 {
                     output.Add("\n\n## Child interfaces");
                     foreach (DTInterfaceInfo childIface in ontology.ChildrenOf(iface))
                     {
-                        Uri myPath = new Uri($"file:///{GetPath(iface)}");
-                        Uri childPath = new Uri($"file:///{GetPath(childIface)}");
-                        Uri relativeLink = myPath.MakeRelativeUri(childPath);
-                        output.Add($"* [{GetApiName(childIface)}]({relativeLink.OriginalString})");
+                        output.Add($"* [{GetApiName(childIface)}]({GetRelativePath(iface, childIface)})");
                     }
                     output.Add("\n---");
-
                 }
 
+                // Relationships section
                 if (iface.AllRelationships().Any()) {
                     output.Add("## Relationships");
                     if (iface.DirectRelationships().Any()) { 
@@ -119,6 +115,7 @@ namespace DTDL2MD
                     }
                 }
 
+                // Properties section
                 if (iface.AllProperties().Any()) {
                     output.Add("## Properties");
                     if (iface.DirectProperties().Any()) { 
@@ -144,6 +141,7 @@ namespace DTDL2MD
                     }
                 }
 
+                // Telemetries section
                 if (iface.AllTelemetries().Any()) {
                     output.Add("## Telemetries");
                     if (iface.DirectTelemetries().Any())
@@ -170,6 +168,7 @@ namespace DTDL2MD
                     }
                 }
 
+                // Commands section
                 if (iface.AllCommands().Any()) {
                     output.Add("## Commands");
                     if (iface.DirectCommands().Any())
@@ -197,6 +196,7 @@ namespace DTDL2MD
                     }
                 }
 
+                // Incoming Relationship links to this interface
                 output.Add("## Target Of");
                 if (ontology.RelationshipsTargeting(iface.Id).Any())
                 {
@@ -208,6 +208,7 @@ namespace DTDL2MD
                     }
                 }
 
+                // Incoming Relationship links to parent interfaces
                 IEnumerable<Dtmi> parentDtmis = iface.AllParents().Select(parent => parent.Id);
                 if (ontology.RelationshipsTargeting(parentDtmis).Any())
                 {
@@ -219,15 +220,14 @@ namespace DTDL2MD
                     }
                 }
 
+                // Define and create output directory; write file and log
                 string outputFilePath = outputRoot + GetPath(iface);
                 if (Path.GetDirectoryName(outputFilePath) is string outputDirectoryPath) {
                     Directory.CreateDirectory(outputDirectoryPath);
                 }
-
                 File.WriteAllLines(outputFilePath, output);
                 Console.WriteLine($"Wrote {outputFilePath}");
             }
-
         }
 
         private static string GetSchemaString(DTSchemaInfo schema)
@@ -285,6 +285,14 @@ namespace DTDL2MD
             string outputFilePath = $"/{outputDirectory}/{ifaceName}.md";
 
             return outputFilePath;
+        }
+
+        private static string GetRelativePath(DTInterfaceInfo sourceIface, DTInterfaceInfo targetIface)
+        {
+            Uri sourcePath = new Uri($"file:///{GetPath(sourceIface)}");
+            Uri targetPath = new Uri($"file:///{GetPath(targetIface)}");
+            Uri relativeLink = sourcePath.MakeRelativeUri(targetPath);
+            return relativeLink.OriginalString;
         }
 
         private static List<DTInterfaceInfo> GetLongestParentPath(DTInterfaceInfo iface)
