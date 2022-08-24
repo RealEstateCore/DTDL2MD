@@ -60,21 +60,20 @@ namespace DTDL2MD
                 output.Add(string.Join(" > ", ancestorLinks));
 
                 string ifaceName = GetApiName(iface);
+                output.Add($"# {ifaceName}\n");
 
-                output.Add($"# {ifaceName}");
+                if (iface.Description.Count > 0)
+                {
+                    output.Add($"{iface.Description.First().Value}\n\n");
+                }
+
+                if (iface.DisplayName.Count > 0)
+                {
+                    output.Add($"**Display name:** {iface.DisplayName.First().Value}<br />");
+                }
+
                 output.Add($"**DTMI:** {iface.Id}");
-
-                output.Add("## Display name");
-                foreach ((string lang, string dname) in iface.DisplayName)
-                {
-                    output.Add($"- **{lang}:** {dname}");
-                }
-
-                output.Add("## Description");
-                foreach ((string lang, string desc) in iface.Description)
-                {
-                    output.Add($"- **{lang}:** {desc}");
-                }
+                output.Add("\n---");
 
                 if (iface.AllRelationships().Any()) {
                     output.Add("## Relationships");
