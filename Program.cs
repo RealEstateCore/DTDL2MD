@@ -71,21 +71,21 @@ namespace DTDL2MD
                     output.Add($"**Display name:** {iface.DisplayName.First().Value}<br />");
                 }
                 output.Add($"**DTMI:** {iface.Id}");
-                output.Add("\n---");
 
                 // Child interfaces section
                 if (ontology.ChildrenOf(iface).Any())
                 {
-                    output.Add("\n\n## Child interfaces");
+                    output.Add("\n---\n");
+                    output.Add("## Child interfaces");
                     foreach (DTInterfaceInfo childIface in ontology.ChildrenOf(iface))
                     {
                         output.Add($"* [{GetApiName(childIface)}]({GetRelativePath(iface, childIface)})");
                     }
-                    output.Add("\n---");
                 }
 
                 // Relationships section
                 if (iface.AllRelationships().Any()) {
+                    output.Add("\n---\n");
                     output.Add("## Relationships");
                     if (iface.DirectRelationships().Any()) { 
                         output.Add("|Name|Display name|Description|Multiplicity|Target|Properties|Writable|");
@@ -99,7 +99,7 @@ namespace DTDL2MD
                         string min = relationship.MinMultiplicity.HasValue ? relationship.MinMultiplicity.Value.ToString() : "0";
                         string max = relationship.MaxMultiplicity.HasValue ? relationship.MaxMultiplicity.Value.ToString() : "Infinity";
                         string multiplicity = $"{min}-{max}";
-                        string target = relationship.Target == null ? "" : relationship.Target.ToString();
+                        string target = relationship.Target == null ? "" : $"[{GetApiName(ontology[relationship.Target])}]({GetRelativePath(iface, relationship.Target)})";
                         string props = string.Join("<br>", relationship.Properties.Select(prop => $"{prop.Name} ({GetSchemaString(prop.Schema)})"));
                         bool writable = relationship.Writable;
                         output.Add($"|{name}|{dname}|{desc}|{multiplicity}|{target}|{props}|{writable}|");
@@ -110,13 +110,15 @@ namespace DTDL2MD
                         foreach (Dtmi parent in iface.InheritedRelationships().Select(ir => ir.DefinedIn).Distinct())
                         {
                             string relationships = string.Join(", ", iface.InheritedRelationships().Where(ir => ir.DefinedIn == parent).Select(ir => ir.Name).OrderBy(irName => irName));
-                            output.Add($"* **{parent}:** {relationships}");
+                            string parentLink = $"[{GetApiName(ontology[parent])}]({GetRelativePath(iface, parent)})";
+                            output.Add($"* **{parentLink}:** {relationships}");
                         }
                     }
                 }
 
                 // Properties section
                 if (iface.AllProperties().Any()) {
+                    output.Add("\n---\n");
                     output.Add("## Properties");
                     if (iface.DirectProperties().Any()) { 
                         output.Add("|Name|Display name|Description|Schema|Writable|");
@@ -136,13 +138,15 @@ namespace DTDL2MD
                         foreach (Dtmi parent in iface.InheritedProperties().Select(ip => ip.DefinedIn).Distinct())
                         {
                             string properties = string.Join(", ", iface.InheritedProperties().Where(ip => ip.DefinedIn == parent).Select(ip => ip.Name).OrderBy(ipName => ipName));
-                            output.Add($"* **{parent}:** {properties}");
+                            string parentLink = $"[{GetApiName(ontology[parent])}]({GetRelativePath(iface, parent)})";
+                            output.Add($"* **{parentLink}:** {properties}");
                         }
                     }
                 }
 
                 // Telemetries section
                 if (iface.AllTelemetries().Any()) {
+                    output.Add("\n---\n");
                     output.Add("## Telemetries");
                     if (iface.DirectTelemetries().Any())
                     {
@@ -163,13 +167,15 @@ namespace DTDL2MD
                         foreach (Dtmi parent in iface.InheritedTelemetries().Select(it => it.DefinedIn).Distinct())
                         {
                             string telemetries = string.Join(", ", iface.InheritedTelemetries().Where(it => it.DefinedIn == parent).Select(it => it.Name).OrderBy(itName => itName));
-                            output.Add($"* **{parent}:** {telemetries}");
+                            string parentLink = $"[{GetApiName(ontology[parent])}]({GetRelativePath(iface, parent)})";
+                            output.Add($"* **{parentLink}:** {telemetries}");
                         }
                     }
                 }
 
                 // Commands section
                 if (iface.AllCommands().Any()) {
+                    output.Add("\n---\n");
                     output.Add("## Commands");
                     if (iface.DirectCommands().Any())
                     {
@@ -191,12 +197,14 @@ namespace DTDL2MD
                         foreach (Dtmi parent in iface.InheritedCommands().Select(ic => ic.DefinedIn).Distinct())
                         {
                             string commands = string.Join(", ", iface.InheritedCommands().Where(ic => ic.DefinedIn == parent).Select(ic => ic.Name).OrderBy(icName => icName));
-                            output.Add($"* **{parent}:** {commands}");
+                            string parentLink = $"[{GetApiName(ontology[parent])}]({GetRelativePath(iface, parent)})";
+                            output.Add($"* **{parentLink}:** {commands}");
                         }
                     }
                 }
 
                 // Incoming Relationship links to this interface
+                output.Add("\n---\n");
                 output.Add("## Target Of");
                 if (ontology.RelationshipsTargeting(iface.Id).Any())
                 {
@@ -204,7 +212,7 @@ namespace DTDL2MD
                     foreach (DTRelationshipInfo relationship in ontology.RelationshipsTargeting(iface.Id))
                     {
                         DTEntityInfo definedIn = ontology[relationship.DefinedIn];
-                        output.Add($"* {GetApiName(definedIn)}.{relationship.Name}");
+                        output.Add($"* [{GetApiName(definedIn)}]({GetRelativePath(iface, relationship.DefinedIn)}).{relationship.Name}");
                     }
                 }
 
@@ -216,12 +224,12 @@ namespace DTDL2MD
                     foreach (DTRelationshipInfo indirectRelationship in ontology.RelationshipsTargeting(parentDtmis))
                     {
                         DTEntityInfo definedIn = ontology[indirectRelationship.DefinedIn];
-                        output.Add($"* {GetApiName(definedIn)}.{indirectRelationship.Name}");
+                        output.Add($"* [{GetApiName(definedIn)}]({GetRelativePath(iface, indirectRelationship.DefinedIn)}).{indirectRelationship.Name}");
                     }
                 }
 
                 // Define and create output directory; write file and log
-                string outputFilePath = outputRoot + GetPath(iface);
+                string outputFilePath = GetPath(iface);
                 if (Path.GetDirectoryName(outputFilePath) is string outputDirectoryPath) {
                     Directory.CreateDirectory(outputDirectoryPath);
                 }
@@ -277,22 +285,36 @@ namespace DTDL2MD
             // Construct parent directory structure based on longest parent path to root
             string ifaceName = GetApiName(iface);
             List<DTInterfaceInfo> parentDirectories = GetLongestParentPath(iface);
-            string outputDirectory = string.Join("/", parentDirectories.Select(parent => GetApiName(parent)));
+            string outputDirectory = outputRoot + "/" + string.Join("/", parentDirectories.Select(parent => GetApiName(parent)));
             
             // If the interface has children, place it with them
             if (ontology.ChildrenOf(iface).Any()) { outputDirectory += $"/{ifaceName}"; }
             
-            string outputFilePath = $"/{outputDirectory}/{ifaceName}.md";
+            string outputFilePath = $"{outputDirectory}/{ifaceName}.md";
+
+            // Replace double slashes; will occur on top-level interfaces w/ children due to parentDirectories above being empty list
+            outputFilePath = outputFilePath.Replace("//", "/");
 
             return outputFilePath;
         }
 
         private static string GetRelativePath(DTInterfaceInfo sourceIface, DTInterfaceInfo targetIface)
         {
+            if (sourceIface == targetIface)
+            {
+                return "#";
+            }
             Uri sourcePath = new Uri($"file:///{GetPath(sourceIface)}");
             Uri targetPath = new Uri($"file:///{GetPath(targetIface)}");
             Uri relativeLink = sourcePath.MakeRelativeUri(targetPath);
+            string originalstring = relativeLink.OriginalString;
             return relativeLink.OriginalString;
+        }
+
+        private static string GetRelativePath(DTInterfaceInfo sourceIface, Dtmi targetDtmi)
+        {
+            DTInterfaceInfo targetIface = (DTInterfaceInfo)ontology[targetDtmi];
+            return GetRelativePath(sourceIface, targetIface);
         }
 
         private static List<DTInterfaceInfo> GetLongestParentPath(DTInterfaceInfo iface)
