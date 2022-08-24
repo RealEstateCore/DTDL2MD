@@ -56,7 +56,7 @@ namespace DTDL2MD
                     Uri relativeLink = myPath.MakeRelativeUri(ancestorPath);
                     ancestorLinks.Add($"[{GetApiName(ancestor)}]({relativeLink.OriginalString})");
                 }
-                ancestorLinks.Add($"[{GetApiName(iface)}](.)");
+                ancestorLinks.Add($"[{GetApiName(iface)}](#)");
                 output.Add(string.Join(" > ", ancestorLinks));
 
                 string ifaceName = GetApiName(iface);
