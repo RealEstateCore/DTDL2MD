@@ -75,6 +75,20 @@ namespace DTDL2MD
                 output.Add($"**DTMI:** {iface.Id}");
                 output.Add("\n---");
 
+                if (ontology.ChildrenOf(iface).Any())
+                {
+                    output.Add("\n\n## Child interfaces");
+                    foreach (DTInterfaceInfo childIface in ontology.ChildrenOf(iface))
+                    {
+                        Uri myPath = new Uri($"file:///{GetPath(iface)}");
+                        Uri childPath = new Uri($"file:///{GetPath(childIface)}");
+                        Uri relativeLink = myPath.MakeRelativeUri(childPath);
+                        output.Add($"* [{GetApiName(childIface)}]({relativeLink.OriginalString})");
+                    }
+                    output.Add("\n---");
+
+                }
+
                 if (iface.AllRelationships().Any()) {
                     output.Add("## Relationships");
                     if (iface.DirectRelationships().Any()) { 
