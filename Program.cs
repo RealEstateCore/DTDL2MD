@@ -88,7 +88,7 @@ namespace DTDL2MD
                 // Relationships section
                 if (iface.AllRelationships().Any()) {
                     output.Add("\n---\n");
-                    output.Add("## Relationships");
+                    output.Add("## Relationships\n");
                     if (iface.DirectRelationships().Any()) { 
                         output.Add("|Name|Display name|Description|Multiplicity|Target|Properties|Writable|");
                         output.Add("|-|-|-|-|-|-|-|");
@@ -121,7 +121,7 @@ namespace DTDL2MD
                 // Properties section
                 if (iface.AllProperties().Any()) {
                     output.Add("\n---\n");
-                    output.Add("## Properties");
+                    output.Add("## Properties\n");
                     if (iface.DirectProperties().Any()) { 
                         output.Add("|Name|Display name|Description|Schema|Writable|");
                         output.Add("|-|-|-|-|-|");
@@ -149,7 +149,7 @@ namespace DTDL2MD
                 // Telemetries section
                 if (iface.AllTelemetries().Any()) {
                     output.Add("\n---\n");
-                    output.Add("## Telemetries");
+                    output.Add("## Telemetries\n");
                     if (iface.DirectTelemetries().Any())
                     {
                         output.Add("|Name|Display name|Description|Schema");
@@ -178,7 +178,7 @@ namespace DTDL2MD
                 // Commands section
                 if (iface.AllCommands().Any()) {
                     output.Add("\n---\n");
-                    output.Add("## Commands");
+                    output.Add("## Commands\n");
                     if (iface.DirectCommands().Any())
                     {
                         output.Add("|Name|Display name|Description|Request schema|Response Schema|");
