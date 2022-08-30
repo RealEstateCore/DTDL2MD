@@ -10,7 +10,7 @@ namespace DTDL2MD
         {
             [Option('i', "inputPath", Required = true, HelpText = "The path to the ontology root directory or file to translate.")]
             public string InputPath { get; set; } = "";
-            [Option('o', "outputPath", Required = true, HelpText = "The path at which to put the generated OAS file.")]
+            [Option('o', "outputPath", Required = true, HelpText = "The path at which to put the generated Markdown files.")]
             public string OutputPath { get; set; } = "";
         }
 
