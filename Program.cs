@@ -85,6 +85,36 @@ namespace DTDL2MD
                     }
                 }
 
+                // Components section
+                if (iface.AllComponents().Any())
+                {
+                    output.Add("\n---\n");
+                    output.Add("## Components\n");
+                    if (iface.DirectComponents().Any())
+                    {
+                        output.Add("|Name|Display name|Description|Schema|");
+                        output.Add("|-|-|-|-|");
+                    }
+                    foreach (DTComponentInfo component in iface.DirectComponents())
+                    {
+                        string name = component.Name;
+                        string dname = string.Join("<br />", component.DisplayName.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                        string desc = string.Join("<br />", component.Description.Select(kvp => $"**{kvp.Key}**: {kvp.Value}"));
+                        string schema = component.Schema == null ? "" : $"[{GetApiName(component.Schema)}]({GetRelativePath(iface, component.Schema)})";
+                        output.Add($"|{name}|{dname}|{desc}|{schema}|");
+                    }
+                    if (iface.InheritedComponents().Any())
+                    {
+                        output.Add("### Inherited Components");
+                        foreach (Dtmi parent in iface.InheritedComponents().Select(ic => ic.DefinedIn).Distinct())
+                        {
+                            string components = string.Join(", ", iface.InheritedComponents().Where(ic => ic.DefinedIn == parent).Select(ic => ic.Name).OrderBy(icName => icName));
+                            string parentLink = $"[{GetApiName(ontology[parent])}]({GetRelativePath(iface, parent)})";
+                            output.Add($"* **{parentLink}:** {components}");
+                        }
+                    }
+                }
+
                 // Relationships section
                 if (iface.AllRelationships().Any()) {
                     output.Add("\n---\n");

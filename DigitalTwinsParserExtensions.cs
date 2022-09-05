@@ -109,6 +109,26 @@ namespace DTDL2MD
                 .Select(content => (DTCommandInfo)content);
         }
 
+        public static IEnumerable<DTComponentInfo> InheritedComponents(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTComponentInfo && content.DefinedIn != iface.Id)
+                .Select(content => (DTComponentInfo)content);
+        }
+        public static IEnumerable<DTComponentInfo> DirectComponents(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTComponentInfo && content.DefinedIn == iface.Id)
+                .Select(content => (DTComponentInfo)content);
+        }
+
+        public static IEnumerable<DTComponentInfo> AllComponents(this DTInterfaceInfo iface)
+        {
+            return iface.Contents.Values
+                .Where(content => content is DTComponentInfo)
+                .Select(content => (DTComponentInfo)content);
+        }
+
         public static IEnumerable<DTInterfaceInfo> AllParents(this DTInterfaceInfo iface)
         {
             foreach (DTInterfaceInfo parent in iface.Extends)
