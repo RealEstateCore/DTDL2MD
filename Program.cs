@@ -51,7 +51,7 @@ namespace DTDL2MD
                 // Ancestor breadcrumbs
                 List<string> ancestorLinks = new List<string>();
                 Uri ifacePath = new Uri($"file:///{outputRoot}{GetPath(iface)}");
-                Uri indexPathUri = new Uri($"file:///{outputRoot}Index.md");
+                Uri indexPathUri = new Uri($"file:///{outputRoot}index.md");
                 Uri linkToIndex = ifacePath.MakeRelativeUri(indexPathUri);
                 ancestorLinks.Add($"[Index]({linkToIndex.OriginalString})");
                 foreach (DTInterfaceInfo ancestor in GetLongestParentPath(iface))
@@ -239,16 +239,16 @@ namespace DTDL2MD
                 Console.WriteLine($"Wrote {outputFilePath}");
             }
 
-            // Write index page
-            Console.WriteLine($"Generating index...");
-            List<string> indexPage = new List<string>();
-            indexPage.Add("# Interface Index");
+            // Write full index page
+            Console.WriteLine($"Generating full index...");
+            List<string> fullIndexPage = new List<string>();
+            fullIndexPage.Add("# Full Type Index\n");
             foreach (DTInterfaceInfo iface in ontology.Values.Where(entity => entity is DTInterfaceInfo iface && !iface.Extends.Any()).OrderBy(iface => GetApiName(iface)))
             {
-                RecursivelyWriteTree(iface, 0, indexPage);
+                RecursivelyWriteTree(iface, 0, fullIndexPage);
             }
-            string indexPath = outputRoot + "Index.md";
-            File.WriteAllLines(indexPath, indexPage);
+            string fullIndexPath = outputRoot + "index.full.md";
+            File.WriteAllLines(fullIndexPath, fullIndexPage);
         }
 
         private static void RecursivelyWriteTree(DTInterfaceInfo iface, int nestingLevel, List<string> indexPage)
