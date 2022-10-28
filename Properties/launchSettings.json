@@ -2,7 +2,7 @@
   "profiles": {
     "DTDL2MD": {
       "commandName": "Project",
-      "commandLineArgs": "-i C:\\rec\\Ontology\\DTDLv3 -o C:\\rec\\Doc"
+      "commandLineArgs": "-i C:\\rec\\Ontology\\DTDLv2 -o C:\\rec\\Doc"
     }
   }
 }
